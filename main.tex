@@ -3,6 +3,7 @@
 \usepackage{amssymb}
 \usepackage{paralist}
 \usepackage{booktabs}
+\usepackage{bussproofs}
 
 \author{G. Jaber\inst{1} \and G. Lewertowski\inst{1} \and P.-M. P\'edrot\inst{2} \and M. Sozeau\inst{1} \and N. Tabareau\inst{2}}
 \title{The Definitional Side of the Forcing}
@@ -25,6 +26,8 @@ Inria Rennes - Bretagne Atlantique
 \newcommand{\mset}[1]{\mathfrak{M}\,#1}
 \newcommand{\Type}{\square}
 
+\newcommand{\interp}[1]{[\![#1]\!]}
+
 \newtheorem{theorem}{Theorem}
 
 \begin{document}
@@ -32,28 +35,22 @@ Inria Rennes - Bretagne Atlantique
 \maketitle
 
   Forcing has been introduced by Cohen to prove the independence of the 
-  Continuum Hypothesis in set theory, and 
-%   The main idea is to build, from a model $M$, a new model $M'$ for which validity is controlled by a partially-ordered set (poset) of forcing conditions living in $M$.  
+  Continuum Hypothesis in set theory.
+  The main idea is to build, from a model $M$, a new model $M'$ for which validity is controlled by a poset of forcing conditions living in $M$.  
 %   Technically, a forcing relation $p \Vdash  \phi $ between a forcing
 %   condition $p$ and a formula ${\phi}$ is defined, such that ${\phi}$
 %   is true in $M'$ iff $p \Vdash  \phi $ is true in $M$,
 %   for some $p$ approximating the new elements of $M'$.
-  categorical ideas have been used by Lawvere and Tierney \cite{Tierney72} to recast it in terms of topos of presheaves. 
-  It is then straightforward to extend the construction to work on categories of forcing conditions, rather than simply posets, giving a proof relevant version of forcing.
+  Later, categorical ideas have been used by Lawvere and Tierney \cite{Tierney72} to recast this construction in terms of topos of presheaves. 
+  It naturally gives rise to a proof-relevant forcing working on categories of conditions rather than simply posets.
   %
   \par
   %
   Recent years have seen a renewal of interest
   for forcing, driven by Krivine's classical realizability \cite{Krivine09}. In this line of work, forcing is studied as a
   proof translation, and one seeks to understand its computational content \cite{Miquel11,Brunel14}, through the Curry-Howard correspondence.
-  This means that $p \Vdash  \phi $ is studied  as a syntactic translation of formulas, parametrized by a forcing condition $p$.
-  %
-  \par
-  %
-  Following these ideas, a forcing translation has been defined in \cite{Jaber12} for the Calculus of Constructions, the type theory behind
-  the Coq proof assistant.
-  It is based heavily on the presheaf construction of Lawvere and Tierney.
-  The main goal of \cite{Jaber12} was to extend the logic behind Coq with new principles, while keeping its fundamental properties: soundness, canonicity and decidability of type checking.
+%   This means that $p \Vdash  \phi $ is studied  as a syntactic translation of formulas, parametrized by a forcing condition $p$.
+  Following these ideas, a forcing translation heavily based on the presheaf construction of Lawvere and Tierney was defined in \cite{Jaber12} for the Calculus of Inductive Constructions ($\cic$). The main goal was to extend the logic behind Coq with new principles, while keeping its fundamental properties: soundness, canonicity and decidability of type-checking.
   This approach can be seen, following \cite{Altenkirch16}, as type-theoretic metaprogramming.
   %
   \par
@@ -65,23 +62,35 @@ Inria Rennes - Bretagne Atlantique
   %
   \par
   %
-  We propose a novel forcing translation for the Calculus of Constructions (${\mathrm{CC}}_{\omega }$), which avoids these coherence problems. Departing from the categorical intuitions of the presheaf construction, it
-  takes its roots in a call-by-push-value \cite{Levy01} decomposition of our system. This will justify to name our translation \emph{call-by-name}, while
-  the previous translation of \cite{Jaber12} is \emph{call-by-value}.
+  We propose a novel forcing translation for the Calculus of Constructions which avoids these coherence problems. Departing from the categorical intuitions of the presheaf construction, it
+  takes its roots in a call-by-push-value \cite{Levy01} decomposition of the previous translation. Through this decomposition, the new translation is \emph{call-by-name}, while the previous one one is \emph{call-by-value}. This is easily seen in the translation of dependent products where the type $\Pi x : A.\, B$ is interpreted at level $p$ as $\Pi q \le p.\, \Pi x : \interp{A}_q.\, \interp{B}_q$ in call-by-value v.s. $\Pi x : (\Pi q \le p.\, \interp{A}_q).\, \interp{B}_p$ in call-by-name. Here, the argument $x$ is boxed under a quantification, which corresponds to the fact that it will be evaluated only when needed.
+
+  Assuming the forcing category verifies categorical laws definitionally, we get the following main result.
   \begin{center}
-    \emph{{Call-by-name forcing provides the first effectful translation of ${\mathrm{CC}}_{\omega }$ into itself which preserves definitional equality.}}
+    \emph{{Call-by-name forcing provides the first effectful translation of the Calculus of Constructions into itself which preserves definitional equality.}}
   \end{center}
-  We then extend our translation to inductive types by exploiting storage operators~\cite{Krivine94}---an old idea of Krivine to simulate call-by-value in call-by-name in the context of classical realizability---to restrict the power of dependent elimination in presence of effects. The necessity of a restriction should not be surprising and was already present in Herbelin's work~\cite{Herbelin12}.
+  The requirement on the forcing category is actually not an issue, as we can make any category abide by these definitional laws thanks to a type-theoretic Yoneda embedding.
+  
+  This translation extends to inductive types by exploiting storage operators~\cite{Krivine94}, an old idea of Krivine to simulate call-by-value in call-by-name in the context of classical realizability, to restrict the power of dependent elimination in presence of effects. The necessity of a restriction should not be surprising and was already present in a similar work by Herbelin~\cite{Herbelin12}. In a nutshell, the typing system requires to purify a term of an inductive type before letting it flow into types. Morally, this is done by ensuring that dependent pattern-machings are typed with other pattern-matchings, e.g. for the $\Sigma$-type elimination:
+  \begin{center}
+  \mbox{\AxiomC{{\strut}$\Gamma \vdash M:\mbox{$\Sigma x:A.\,B$}$}\AxiomC{{\strut}$\Gamma ,z:\mbox{$\Sigma x:A.\,B$}\vdash C:\mbox{$\square $}$}\AxiomC{{\strut}$\Gamma ,x:A,y:B\vdash N:\mbox{$C\lbrace {{z\mathrel{:=}(x,y)}}\rbrace $}$}\TrinaryInfC{{\strut}$\Gamma \vdash \mbox{$\mbox{\texttt{match}}\ M\ \mbox{\texttt{with}}\ (x,y)\Rightarrow N$}:\mbox{$\mbox{\texttt{match}}\ M\ \mbox{\texttt{with}}\ (x,y)\Rightarrow C\lbrace {{z\mathrel{:=}(x,y)}}\rbrace $}$}{\DisplayProof}}%
+  \end{center}
+
+  The original $\cic$ can be retrieved by adding an $\eta$-law on inductive types which is not preserved by the translation. Actually, the translation allows to build non-canonical inhabitants of inductive types and thus negates this $\eta$-law. Hence,
+  \begin{center}
+    \emph{{Call-by-name forcing provides the first version of $\cic$ with effects.}}
+  \end{center}
+  The nice property of preservation of definitional equality is emphasized by the implementation of a Coq plugin\footnote{Available at \url{https://github.com/CoqHott/coq-forcing}.} which works for any term of $\cic$, assuming it complies with the restricted typing rules. 
   %
   \par
   %
-  This provides \emph{the first version of Calculus of Inductive Constructions ($\mathrm{CIC}$) with effects}. The nice property of preservation of definitional equality is emphasized by the implementation of a Coq plugin\footnote{Available at \url{https://github.com/CoqHott/coq-forcing}.} which works for any term of $\mathrm{CIC}$. 
-  %
-  \par
-  %
-  We conclude the paper by using forcing to produce various results around homotopy type theory. First, we prove that (a simple version of) functional extensionality is preserved in any forcing layer. Then we show that the negation of Voevodsky's univalence axiom is consistent with $\mathrm{CIC}$ plus functional extensionality. 
-  This statement could already be deduced for the existence of a set-based \emph{proof-irrelevant} model~\cite{Werner97}, but we provide the first formalization of it, in a proof relevant setting, and by an easy use of the forcing plugin. 
-   Finally, we show that under an additional assumption of monotonicity of types, we get the preservation of (a simple version of) the univalence axiom.
+  By using forcing, we produced various results around homotopy type theory. We proved that functional extensionality is preserved in any forcing layer. We also showed that the negation of Voevodsky's univalence axiom is consistent with $\cic$ plus functional extensionality. 
+  This statement could already be deduced for the existence of a set-based \emph{proof-irrelevant} model~\cite{Werner97}, but we provided the first formalization of it, in a proof relevant setting, and by an easy use of the forcing plugin. Under an additional assumption of parametricity, we showed conversely that we get the preservation of the univalence axiom.
+
+  This is a first step towards the use of the category of cubes as the
+  type of forcing conditions to give a computational content to the cubical
+  type theory~\cite{cubicaltt} of Coquand et al. in Coq, and in particular to
+  the univalence axiom.
 
 \bibliographystyle{abbrv}
 \bibliography{biblio}
